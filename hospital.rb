@@ -5,7 +5,6 @@ require "./ssl_helpers"
 class Hospital
   include SSLHelpers
 
-  ORDER = 47
   CLIENT_PORTS = [4747, 4748, 4749]
   PORT = 5000
 
@@ -15,6 +14,7 @@ class Hospital
   end
 
   def run
+    puts "Started hospital. Waiting for connections..."
     with_ssl_context do |ctx|
       tcp_server = TCPServer.new(PORT)
       server = OpenSSL::SSL::SSLServer.new(tcp_server, ctx)

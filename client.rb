@@ -9,7 +9,7 @@ class Client
   HOSPITAL = 5000
 
   def initialize(id, verbose)
-    @secret = rand(1..100)
+    @secret = rand(100..200)
     @id = id
     @verbose = verbose
 
@@ -19,7 +19,7 @@ class Client
 
     @received = []
 
-    log "Initialized with shares [#{@shares.join(", ")}, #{@share3}]. Secret is #{@secret}"
+    puts "Client: #{@id}: Initialized with shares [#{@shares.join(", ")}, #{@share3}]. Secret is #{@secret}"
   end
 
   def run
@@ -38,7 +38,7 @@ class Client
 
   def receive_shares(port)
     establish_tls_connection_with_retries(port, 5) do |sock|
-      log "Receiving shares from client"
+      log "Receiving share from client at port #{port}"
       @received << sock.gets.to_i
       log "Finished receiving shares: #{@received}"
     end
@@ -50,7 +50,7 @@ class Client
       server = OpenSSL::SSL::SSLServer.new(tcp_server, ctx)
       2.times do |i|
         server.accept.tap do |client|
-          log "Sending shares to client"
+          log "Broadcasting share #{@shares.last}"
           client.puts @shares.pop
           client.close
         end

@@ -15,10 +15,9 @@ module SSLHelpers
             finished = true
           end
         rescue Errno::ECONNREFUSED
-          log "Waiting for #{port} to come online..."
+          log "Waiting for #{port} to come online... Attempt: #{retries}"
           sleep 1
           retries += 1
-          log "Retries: #{retries}"
         end
       end
     end
