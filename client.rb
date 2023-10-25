@@ -34,7 +34,7 @@ class Client
       elsif line == "print"
         puts self
       else
-        puts "Invalid command. Valid commands are 'send', 'receive', 'print'"
+        puts "Invalid command. Valid commands are 'send', 'receive', 'print', 'hospital'"
       end
     end
   end

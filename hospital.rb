@@ -19,15 +19,14 @@ class Hospital
       tcp_server = TCPServer.new(PORT)
       server = OpenSSL::SSL::SSLServer.new(tcp_server, ctx)
       log "Opening server to receive shares"
-      while $stdin.gets.chop != "stop"
-        Thread.start(server.accept) do |client|
-          msg = client.gets.to_i
-          log "Received #{msg}"
-          @shares << msg
-          client.close
-          log "Finished receiving!"
-          log "Received shares: #{@shares}"
-        end
+      3.times do
+        client = server.accept
+        msg = client.gets.to_i
+        log "Received #{msg}"
+        @shares << msg
+        client.close
+        log "Finished receiving!"
+        log "Received shares: #{@shares}"
       end
       server.close
       log "Closed server!"
