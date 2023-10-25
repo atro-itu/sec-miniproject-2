@@ -1,13 +1,25 @@
 require "openssl"
 
 module SSLHelpers
-  def establish_tls_connection(port, &block)
+  def establish_tls_connection_with_retries(port, max_retries, &block)
     with_ssl_context do |ctx|
-      tcp_sock = TCPSocket.open("localhost", port)
-      OpenSSL::SSL::SSLSocket.new(tcp_sock, ctx).tap do |sock|
-        sock.connect
-        yield sock
-        sock.close
+      retries = 0
+      finished = false
+      while retries < max_retries && !finished
+        begin
+          tcp_sock = TCPSocket.open("localhost", port)
+          OpenSSL::SSL::SSLSocket.new(tcp_sock, ctx).tap do |sock|
+            sock.connect
+            yield sock
+            sock.close
+            finished = true
+          end
+        rescue Errno::ECONNREFUSED
+          log "Waiting for #{port} to come online..."
+          sleep 1
+          retries += 1
+          log "Retries: #{retries}"
+        end
       end
     end
   end

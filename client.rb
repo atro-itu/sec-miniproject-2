@@ -5,83 +5,65 @@ require "./ssl_helpers"
 class Client
   include SSLHelpers
 
-  ORDER = 47
   PORTS = [4747, 4748, 4749]
   HOSPITAL = 5000
 
   def initialize(id, verbose)
+    @secret = rand(1..100)
     @id = id
     @verbose = verbose
 
-    share1, share2 = rand(ORDER + 1), rand(ORDER + 1)
-    share3 = ORDER - (share1 + share2)
-    @shares = [share1, share2, share3]
+    share1, share2 = rand(@secret + 1), rand(@secret + 1)
+    @share3 = @secret - (share1 + share2)
+    @shares = [share1, share2]
 
     @received = []
 
-    log "Initialized with shares #{@shares}"
+    log "Initialized with shares [#{@shares.join(", ")}, #{@share3}]. Secret is #{@secret}"
   end
 
   def run
-    log "Starting IO loop"
-    while (line = $stdin.gets.chop)
-      if line == "send"
-        send_shares
-      elsif line == "receive"
-        receive_shares
-      elsif line == "hospital"
-        send_to_hospital
-      elsif line == "print"
-        puts self
-      else
-        puts "Invalid command. Valid commands are 'send', 'receive', 'print', 'hospital'"
-      end
+    PORTS.each do |port|
+      (port == PORTS[@id]) ? send_shares(port) : receive_shares(port)
+    end
+
+    log "My received is: #{@received}"
+    log "My sum is: #{output}"
+    log "Sending to hospital..."
+
+    send_to_hospital
+
+    log "Finished!"
+  end
+
+  def receive_shares(port)
+    establish_tls_connection_with_retries(port, 5) do |sock|
+      log "Receiving shares from client"
+      @received << sock.gets.to_i
+      log "Finished receiving shares: #{@received}"
     end
   end
 
-  def receive_shares
+  def send_shares(port)
     with_ssl_context do |ctx|
-      tcp_server = TCPServer.new(PORTS[@id])
+      tcp_server = TCPServer.new(port)
       server = OpenSSL::SSL::SSLServer.new(tcp_server, ctx)
+      2.times do |i|
+        server.accept.tap do |client|
+          log "Sending shares to client"
+          client.puts @shares.pop
+          client.close
+        end
+      end
 
-      log "Opening server to receive shares"
-
-      client = server.accept
-      msg = client.gets.to_i
-
-      log "Received #{msg}"
-
-      @received << msg
-
-      client.close
-      log "Finished receiving!"
-
-      server.close
-      log "Closed server!"
+      log "Finished sending shares"
     end
-  end
-
-  def send_shares
-    log "Sending shares"
-    p1, p2 = (@id + 1) % 3, (@id + 2) % 3
-
-    establish_tls_connection(PORTS[p1]) do |sock|
-      log "Sending shares to #{p1}"
-      sock.puts(@shares[p1])
-    end
-
-    establish_tls_connection(PORTS[p2]) do |sock|
-      log "Sending shares to #{p2}"
-      sock.puts(@shares[p2])
-    end
-
-    log "Finished sending!"
   end
 
   def send_to_hospital
     log "Sending shares to hospital"
 
-    establish_tls_connection(HOSPITAL) do |sock|
+    establish_tls_connection_with_retries(HOSPITAL, 5) do |sock|
       sock.puts(output)
     end
 
@@ -99,7 +81,7 @@ class Client
   end
 
   def output
-    @shares[@id] + @received.sum
+    @share3 + @received.sum
   end
 end
 
