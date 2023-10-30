@@ -25,8 +25,8 @@ module SSLHelpers
 
   def with_ssl_context(&block)
     ctx = OpenSSL::SSL::SSLContext.new
-    ctx.cert = OpenSSL::X509::Certificate.new(File.open("server.cert"))
-    ctx.key = OpenSSL::PKey::RSA.new(File.open("server.key"))
+    ctx.cert = OpenSSL::X509::Certificate.new(File.open("certs/#{@cert_path}"))
+    ctx.key = OpenSSL::PKey::RSA.new(File.open("certs/#{@key_path}"))
     ctx.min_version = :TLS1_3
     yield ctx
   end

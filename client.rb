@@ -12,6 +12,8 @@ class Client
     @secret = rand(100..200)
     @id = id
     @verbose = verbose
+    @cert_path = "client_#{id}.cert"
+    @key_path = "client_#{id}.key"
 
     share1, share2 = rand(@secret + 1), rand(@secret + 1)
     @share3 = @secret - (share1 + share2)

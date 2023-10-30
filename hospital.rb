@@ -11,6 +11,8 @@ class Hospital
   def initialize(verbose)
     @shares = []
     @verbose = verbose
+    @cert_path = "hospital.cert"
+    @key_path = "hospital.key"
   end
 
   def run
