@@ -95,6 +95,4 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-Client.new(ARGV[0].to_i, verbose).tap do |client|
-  client.run
-end
+Client.new(ARGV[0].to_i, verbose).run

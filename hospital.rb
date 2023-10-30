@@ -52,6 +52,4 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-Hospital.new(verbose).tap do |hospital|
-  hospital.run
-end
+Hospital.new(verbose).run
