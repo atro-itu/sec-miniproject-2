@@ -5,17 +5,18 @@ require "./ssl_helpers"
 class Client
   include SSLHelpers
 
+  ORDER = 47
   PORTS = [4747, 4748, 4749]
   HOSPITAL = 5000
 
   def initialize(id, verbose)
-    @secret = rand(100..200)
+    @secret = rand(1..ORDER)
     @id = id
     @verbose = verbose
     @cert_path = "client_#{id}.cert"
     @key_path = "client_#{id}.key"
 
-    share1, share2 = rand(@secret + 1), rand(@secret + 1)
+    share1, share2 = rand(1..ORDER), rand(1..ORDER)
     @share3 = @secret - (share1 + share2)
     @shares = [share1, share2]
 
